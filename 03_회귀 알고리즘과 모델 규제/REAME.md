@@ -1,7 +1,7 @@
 # 정리
 
 <details>
-<summary> 회귀문제를 이해하고 k 최근접 이웃 알고리즘으로 풀어보기 </summary>
+<summary> Intro 회귀 </summary>
 
 ## 회귀(Regression)
 
@@ -90,6 +90,109 @@
        2. 예측값 0.6 , **"도미일 확률이 60%"** 
 
        <br/>
+
+</details>
+
+
+<details>
+<summary> 회귀문제를 이해하고 k 최근접 이웃 알고리즘으로 풀어보기 </summary>
+
+> 분류는 다수결, 회귀는 평균 이라는 것
+
+| 항목 | K-최근접 분류 (`KNeighborsClassifier`) | K-최근접 회귀 (`KNeighborsRegressor`) |
+| ------ | ------ | ----- |
+| 목적 | 분류 (클래스 예측) | 수치값 예측 (연속적인 값) |
+이웃들의 label | 다수결 투표로 클래스 결정 | 평균(또는 가중평균)으로 값 결정 |
+| 예시 | 고양이냐 강아지냐 | 무게, 가격, 키 등 수치 예측 |
+| 출력 | 클래스 이름 (ex. '도미', '빙어') | 연속적인 숫자 (ex. 250g, 500g) |
+
+
+## 데이터 분리
+
+```py
+from sklearn.model_selection import train_test_split
+
+train_input, test_input, train_target, test_target = train_test_split(
+    perch_length, perch_weight, random_state=42
+)
+```
+
+- 데이터를 훈련세트(train) 과 테스트세트(test)
+
+- `random_state=42` 는 랜덤 동작의 출발점을 고정
+  
+   - 항상 같은 무작위 결과를 얻음
+
+## 입력 데이터 형태 변경
+
+```py
+train_input = train_input.reshape(-1, 1)
+test_input = test_input.reshape(-1, 1)
+```
+
+- `KNeighborsRegressor` 은 2차원 배열을 원함
+
+- (샘플 수, 특성 수) 형태로 변환
+
+## K-최근접 회귀 모델 만들고 훈련
+
+```py
+from sklearn.neighbors import KNeighborsRegressor
+
+knr = KNeighborsRegressor()
+knr.fit(train_input, train_target)
+```
+
+- 기본 `n_neighbors=5` 사용 (주변 5개 이웃 평균)
+
+- 훈련 데이터로 모델 학습
+
+## 평균 절댓값 오차(MAE) 계산
+
+```py
+from sklearn.metrics import mean_absolute_error
+
+test_prediction = knr.predict(test_input)
+mae = mean_absolute_error(test_target, test_prediction)
+print(mae)
+# 19.157142857142862
+```
+
+- 오차가 얼만큼 나는지를 직관적으로 알 수 있게 해주는 지표
+
+- 예측값과 실제값의 차이를 절댓값으로 평균낸 것
+
+- 작을수록 좋은 모델
+
+## 과대적합 vs 과소적합
+
+```py
+knr.score(train_input, train_target)
+knr.score(test_input, test_target)
+```
+
+- 훈련셋 점수와 테스트셋 점수 비교
+
+   - 훈련점수 높고 테스트점수 낮으면 -> **과대적합(overfitting)**
+
+   - 둘 다 낮으면 -> **과소적합(underfitting)**
+
+## K(이웃 개수) 줄이기
+
+```py
+knr.n_neighbors = 3
+knr.fit(train_input, train_target)
+
+print(knr.score(train_input, train_target))
+print(knr.score(test_input, test_target))
+```
+
+- 이웃 수를 `5 -> 3`으로 줄임
+
+   - **K를 줄이면 더 가까운 이웃만 보기 때문에 훈련 점수는 올라가고 테스트 점수는 달라질 수 있음**
+
+   - 대신 과적합 위험도 조금 증가할 수 있음
+
 
 
 </details>
